@@ -7,45 +7,45 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Explicitly type formData state
   const [formData, setFormData] = useState<{
     username: string;
     email: string;
     password: string;
     confirmPassword: string;
-    role: 'user' | 'admin';  // Specify the role type as 'user' or 'admin'
+    role: 'user' | 'admin';
   }>({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user',  // Default role is 'user'
+    role: 'user',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if passwords match
+    // 1. Validation Logic
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
 
-    // Check if password is strong enough
     if (formData.password.length < 6) {
       alert("Password must be at least 6 characters");
       return;
     }
 
-    // Create a user object to simulate login
-    const user = {
+    // 2. CREATE UPDATED USER OBJECT
+    // This now matches your AuthContext User interface exactly
+    const userToLogin = {
+      _id: formData.email.split('@')[0] + "_" + Date.now(), // Updated: Unique ID using _id
       name: formData.username,
-      role: formData.role,  // role is either 'user' or 'admin'
-      id: formData.email.split('@')[0], // Generate a unique ID based on the email prefix
+      email: formData.email,                               // Updated: added email
+      role: formData.role, 
     };
 
-    // Pass the user object to the login function
-    login(user);  // Ensure login function is expecting an object of this shape
+    // 3. Login and Redirect
+    login(userToLogin);  
     navigate('/home');
   };
 
@@ -59,7 +59,7 @@ export default function RegisterPage() {
             <BatteryCharging className="w-8 h-8 text-black" />
           </div>
           <h1 className="text-2xl font-bold mb-1">Create Account</h1>
-          <p className="text-gray-500 text-sm">Join the E-Waste Marketplace today</p>
+          <p className="text-gray-500 text-sm italic">E-Waste Marketplace</p>
         </div>
 
         {/* FORM SECTION */}
@@ -67,14 +67,14 @@ export default function RegisterPage() {
           
           {/* Username */}
           <div>
-            <label className="block text-sm font-bold mb-2">Full Name</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Full Name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 value={formData.username}
                 onChange={(e) => setFormData({...formData, username: e.target.value})}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-teal-600 focus:bg-white focus:outline-none transition-all"
                 placeholder="John Doe"
                 required
               />
@@ -83,14 +83,14 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-bold mb-2">Email Address</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-teal-600 focus:bg-white focus:outline-none transition-all"
                 placeholder="name@example.com"
                 required
               />
@@ -99,14 +99,14 @@ export default function RegisterPage() {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-bold mb-2">Password</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-teal-600 focus:bg-white focus:outline-none transition-all"
                 placeholder="Create a password"
                 required
               />
@@ -115,14 +115,14 @@ export default function RegisterPage() {
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-bold mb-2">Confirm Password</label>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Confirm Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-teal-600 focus:bg-white focus:outline-none transition-all"
                 placeholder="Confirm your password"
                 required
               />
@@ -131,21 +131,21 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="w-full py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition-all transform active:scale-95 flex items-center justify-center gap-2 mt-4"
+            className="w-full py-4 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 mt-6"
           >
-            Register Now <ArrowRight className="w-4 h-4" />
+            Create Account <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-       <div className="mt-8 text-center text-sm text-gray-500">
-  Already have an account? 
-  <span 
-    onClick={() => navigate('/')} 
-    className="text-black font-bold cursor-pointer hover:underline"
-  >
-    Log in here
-  </span>
-</div>
+        <div className="mt-8 text-center text-sm text-gray-500">
+          Already have an account? 
+          <span 
+            onClick={() => navigate('/')} 
+            className="ml-1 text-teal-600 font-bold cursor-pointer hover:underline"
+          >
+            Log in here
+          </span>
+        </div>
       </div>
     </div>
   );
