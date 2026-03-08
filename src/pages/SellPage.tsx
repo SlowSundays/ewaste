@@ -91,26 +91,30 @@ export default function SellPage() {
       images,
       grade,
       price,
-      // FIXED: Changed user.id to user._id
       sellerId: user ? user._id : "", 
     };
 
     try {
-      // Tip: Change this to use an env variable for ngrok later if needed
       const apiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
       
       const response = await fetch(`${apiUrl}/api/products`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          // --- ADD THIS LINE TO BYPASS NGROK WARNING ---
+          "ngrok-skip-browser-warning": "true" 
+        },
         body: JSON.stringify(productData)
       });
 
       if (response.ok) {
         alert("Device Listed Successfully!");
         navigate('/browse');
+      } else {
+        alert("Server returned an error. Make sure backend is running.");
       }
     } catch (err) {
-      alert("Failed to connect to server.");
+      alert("Failed to connect to server. Check your ngrok tunnel.");
     }
   };
 
@@ -229,7 +233,7 @@ export default function SellPage() {
             <div className="space-y-6">
               {Object.keys(answers).map(key => (
                 <div key={key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <p className="font-bold text-gray-700 capitalize">Is the {key} working?</p>
+                  <p className="font-bold text-gray-700 capitalize">{key}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleAnswer(key as any, true)}

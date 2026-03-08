@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { Search, Filter, AlertCircle, Loader2 } from 'lucide-react';
 
 interface Product {
   _id: string; 
@@ -17,33 +18,40 @@ export default function BrowsePage() {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Added error state
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedBrand, setSelectedBrand] = useState('All');
 
-  // 1. Get the API base URL from environment variables
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // 2. Use the dynamic URL instead of hardcoded localhost
-        const response = await fetch(`${API_BASE_URL}/api/products`);
+        setError(null);
+        // Added headers to bypass ngrok warning and ensure JSON response
+        const response = await fetch(`${API_BASE_URL}/api/products`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            'Accept': 'application/json'
+          }
+        });
         
-        if (!response.ok) throw new Error('Failed to fetch');
+        if (!response.ok) throw new Error('Could not connect to the marketplace server.');
         
         const data = await response.json();
         setProducts(data);
-        setLoading(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching products:", error);
+        setError(error.message || "Something went wrong.");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [API_BASE_URL]); // Added dependency for safety
+  }, [API_BASE_URL]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -58,105 +66,144 @@ export default function BrowsePage() {
     });
   }, [products, searchQuery, selectedCategory, selectedBrand]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex flex-col items-center justify-center h-[60vh]">
-          <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-500 font-medium">Fetching marketplace items...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Search by device name or brand..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all shadow-sm"
-          />
+        {/* Header Section */}
+        <div className="mb-10 text-center md:text-left">
+          <h1 className="text-3xl font-black text-gray-900 mb-2">Explore Marketplace</h1>
+          <p className="text-gray-500 font-medium">Find quality pre-owned electronics at great prices.</p>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-8">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-          >
-            <option value="All">All Categories</option>
-            <option value="Mobile">Mobile</option>
-            <option value="Laptop">Laptop</option>
-            <option value="TV">TV</option>
-            <option value="Tablet">Tablet</option>
-          </select>
+        {/* Filters & Search */}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-10 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by device name or brand..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-teal-500 border-2 rounded-xl outline-none transition-all"
+            />
+          </div>
 
-          <select
-            value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-          >
-            <option value="All">All Brands</option>
-            <option value="Apple">Apple</option>
-            <option value="Samsung">Samsung</option>
-            <option value="Dell">Dell</option>
-            <option value="HP">HP</option>
-            <option value="Sony">Sony</option>
-          </select>
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="bg-transparent text-sm font-bold text-gray-600 outline-none"
+              >
+                <option value="All">All Categories</option>
+                <option value="Mobile">Mobile</option>
+                <option value="Laptop">Laptop</option>
+                <option value="TV">TV</option>
+                <option value="Tablet">Tablet</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border">
+              <select
+                value={selectedBrand}
+                onChange={(e) => setSelectedBrand(e.target.value)}
+                className="bg-transparent text-sm font-bold text-gray-600 outline-none"
+              >
+                <option value="All">All Brands</option>
+                <option value="Apple">Apple</option>
+                <option value="Samsung">Samsung</option>
+                <option value="Dell">Dell</option>
+                <option value="HP">HP</option>
+                <option value="Sony">Sony</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product) => (
-            <div
-              key={product._id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group"
+        {/* Loading State */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20 text-teal-600">
+            <Loader2 className="w-12 h-12 animate-spin mb-4" />
+            <p className="font-bold animate-pulse text-gray-400">Syncing with server...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-100 p-8 rounded-2xl text-center max-w-lg mx-auto">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-red-900 font-bold text-lg mb-2">Connection Issue</h3>
+            <p className="text-red-700 text-sm mb-6">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition"
             >
-              <div className="h-56 bg-gray-100 relative overflow-hidden">
-                <img
-                  src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/300'}
-                  alt={product.deviceName}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-teal-700 shadow-sm">
-                  Grade {product.grade}
+              Try Reconnecting
+            </button>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-500 cursor-pointer overflow-hidden group"
+              >
+                <div className="h-60 bg-gray-100 relative overflow-hidden">
+                  <img
+                    src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/400?text=No+Image'}
+                    alt={product.deviceName}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute top-4 right-4 bg-black/80 backdrop-blur text-white px-3 py-1 rounded-full text-xs font-black tracking-widest shadow-lg uppercase">
+                    Grade {product.grade}
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <div className="mb-4">
+                    <h2 className="font-black text-xl text-gray-900 group-hover:text-teal-600 transition-colors truncate">
+                      {product.deviceName}
+                    </h2>
+                    <p className="text-gray-400 text-sm font-bold uppercase tracking-tighter">{product.brand} • {product.category}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-50">
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-400 font-bold uppercase">Price</span>
+                      <span className="text-2xl font-black text-gray-900">RM {product.price}</span>
+                    </div>
+                    <button
+                      onClick={() => navigate(`/product/${product._id}`)}
+                      className="px-6 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition-all active:scale-95 shadow-lg shadow-teal-100"
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
               </div>
-              
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                   <div>
-                      <h2 className="font-bold text-xl text-gray-900 group-hover:text-teal-600 transition-colors">{product.deviceName}</h2>
-                      <p className="text-gray-500 text-sm font-medium">{product.brand} • {product.category}</p>
-                   </div>
-                </div>
+            ))}
+          </div>
+        )}
 
-                <div className="flex items-center justify-between mt-6">
-                  <span className="text-2xl font-black text-gray-900">RM {product.price}</span>
-                  <button
-                    onClick={() => navigate(`/product/${product._id}`)}
-                    className="px-4 py-2 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition-all active:scale-95 shadow-lg shadow-teal-100"
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
+        {/* Empty State */}
+        {!loading && !error && filteredProducts.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+            <div className="text-gray-200 mb-4 flex justify-center">
+               <Search className="w-16 h-16" />
             </div>
-          ))}
-        </div>
-
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-gray-300 mb-4 flex justify-center">
-               <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <p className="text-gray-500 font-medium text-lg">No matching items found in the marketplace.</p>
+            <p className="text-gray-500 font-bold text-lg">No items match your search filters.</p>
+            <button 
+              onClick={() => {setSearchQuery(''); setSelectedCategory('All'); setSelectedBrand('All');}}
+              className="mt-4 text-teal-600 font-black hover:underline"
+            >
+              Clear all filters
+            </button>
           </div>
         )}
       </div>
