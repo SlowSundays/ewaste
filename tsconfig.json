@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "allowJs": true,
+    "jsx": "react"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}
